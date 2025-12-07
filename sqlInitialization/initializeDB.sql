@@ -48,7 +48,8 @@ insert into Person values
 	(2, 'bobbyyy', 'Bob', 'bad password'),
 	(3, 'us1-jimmy', 'Unsuspecting Victim 1', 'Vict1 - password'),
 	(4, 'us2-poppins', 'Unsuspecting Victim 2', 'Vict2 - password'),
-	(5, 'us3-barbara', 'Unsuspecting Victim 3', 'Vict3 - password')
+	(5, 'us3-barbara', 'Unsuspecting Victim 3', 'Vict3 - password'),
+	(6, 'un', 'EasyTest', 'pw')
 ;
 --template to add more
 --(, 'Unsuspecting Victim {ID-2}', 'Vict{ID-2} - password')

@@ -9,15 +9,15 @@ import java.sql.ResultSet;
 
 //How to use:
 // you have the queries:
-//   getLoginQuery and getOrdersQuery
-// each of them have a different:
+//   getLoginQuery --and getOrdersQuery--
+// --each of them have-- it has a different:
 //   _Unprotected and _Protected
 // to get the url from the DBCredentials, use `getHTTPToConnectTo()`
 // Once you have a url, feed it into `makeConnection(url)` to get the db Connection
 // To execute a query, use UnprotectedQuery or ProtectedQuery
 //   example query:
 //   Query.UnprotectedQuery(query.getLoginQuery_Unprotected, ["Username", "password"], makeConnection(getHTTPToConnectTo))
-//
+
 public class Query{
     public static String getLoginQuery_Unprotected = 
         "select name " + 
@@ -29,15 +29,15 @@ public class Query{
         "from Person " + 
         "where username = ? and passwd = ?;";
 
-    public static String getOrdersQuery_Unprotected = 
-        "select location, pizza, price " +
-        "from PizzaOrder, Person " + 
-        "where PizzaOrder.id = Person.id and Person.username = '%s' and Person.passwd = '%s';";
+    // public static String getOrdersQuery_Unprotected = 
+    //     "select location, pizza, price " +
+    //     "from PizzaOrder, Person " + 
+    //     "where PizzaOrder.id = Person.id and Person.username = '%s' and Person.passwd = '%s';";
 
-    public static String getOrdersQuery_Protected = 
-        "select location, pizza, price " +
-        "from PizzaOrder, Person " + 
-        "where PizzaOrder.id = Person.id and Person.username = ? and Person.passwd = ?;";
+    // public static String getOrdersQuery_Protected = 
+    //     "select location, pizza, price " +
+    //     "from PizzaOrder, Person " + 
+    //     "where PizzaOrder.id = Person.id and Person.username = ? and Person.passwd = ?;";
 
     public static String getHTTPToConnectTo(){
         String relativePath = "../../DBCredentials.txt";
