@@ -19,19 +19,23 @@ import java.sql.ResultSet;
 //   Query.UnprotectedQuery(query.getLoginQuery_Unprotected, ["Username", "password"], makeConnection(getHTTPToConnectTo))
 //
 public class Query{
-    public static String getLoginQuery_Unprotected = "select name " + 
+    public static String getLoginQuery_Unprotected = 
+        "select name " + 
         "from Person " + 
         "where username = '%s' and passwd = '%s';";
         
-    public static String getLoginQuery_Protected = "select name " + 
+    public static String getLoginQuery_Protected = 
+        "select name " + 
         "from Person " + 
         "where username = ? and passwd = ?;";
 
-    public static String getOrdersQuery_Unprotected = "select location, pizza, price " +
+    public static String getOrdersQuery_Unprotected = 
+        "select location, pizza, price " +
         "from PizzaOrder, Person " + 
         "where PizzaOrder.id = Person.id and Person.username = '%s' and Person.passwd = '%s';";
 
-    public static String getOrdersQuery_Protected = "select location, pizza, price " +
+    public static String getOrdersQuery_Protected = 
+        "select location, pizza, price " +
         "from PizzaOrder, Person " + 
         "where PizzaOrder.id = Person.id and Person.username = ? and Person.passwd = ?;";
 
@@ -84,7 +88,10 @@ public class Query{
     public static ResultSet UnprotectedQuery(String query, String[] inputs, Connection connection){
         try (
             final PreparedStatement statement = connection.prepareStatement(
-                String.format(query, inputs[0], inputs[1])//Query where you take straight string values (un and pw)
+                //Query where you take straight string values (un and pw)
+                String.format(query, 
+                    inputs[0], //Username
+                    inputs[1]) //Password
             )
         ) 
         {
@@ -111,8 +118,8 @@ public class Query{
                 query//Query where you set a 'fill-in' value as a ? mark
             )
         ) {
-            statement.setString(1,inputs[0]);
-            statement.setString(2,inputs[1]);
+            statement.setString(1,inputs[0]);//set the Username
+            statement.setString(2,inputs[1]);//set the Password
 
             System.out.println("Dispatching the query...");
             //actually run query
