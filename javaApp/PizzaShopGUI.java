@@ -1,12 +1,11 @@
 import java.awt.*;
 import java.awt.event.*;
-import javax.swing.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
+import javax.swing.*;
 
 public class PizzaShopGUI 
 {
@@ -27,17 +26,7 @@ public class PizzaShopGUI
     final static String URL =
         String.format("jdbc:sqlserver://%s:1433;database=%s;user=%s;password=%s;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;",
             HOSTNAME, DBNAME, USERNAME, PASSWORD);
-	
-	public static String getLoginQuery_Unprotected = 
-	        "select name " + 
-	        "from Person " + 
-	        "where username = '%s' and passwd = '%s';";
-	        
-	public static String getLoginQuery_Protected = 
-	        "select name " + 
-	        "from Person " + 
-	        "where username = ? and passwd = ?;";
-	
+		
 	public PizzaShopGUI()
 	{
 		prepareGUI();
@@ -72,8 +61,18 @@ public class PizzaShopGUI
 	    		String username = usernameInput.getText();
 	    		String password = passwordInput.getText();
 	    		String[] inputs = {username, password};
-	    		boolean queryResult = UnprotectedQuery(getLoginQuery_Unprotected, inputs);
+	    		boolean queryResultProt = ProtectedQuery(inputs);
+	    		boolean queryResultVuln = UnprotectedQuery(inputs);
 	    		
+				String conclusion = "";
+
+				if (queryResultProt && queryResultVuln) conclusion = "Valid, correct login";
+				else if (!queryResultVuln && !queryResultProt) conclusion = "Valid, incorrect login";
+				else if (queryResultVuln && !queryResultProt) conclusion = "SQL Injection attack";
+
+				JOptionPane.showMessageDialog(mainFrame, String.format("Protected results:\n  > Logged in successfully?  -  %b\n\nUnprotected results:\n  > Logged in successfully?  -  %b\n\n--  Input was a: %s  --", queryResultProt, queryResultVuln, conclusion));
+
+				/*//
 	    		if(queryResult)
 	    		{
 	    			JOptionPane.showMessageDialog(mainFrame, "Congratulations! You have signed into SELECT * FROM PIZZA;");
@@ -81,7 +80,7 @@ public class PizzaShopGUI
 	    		else
 	    		{
 	    			JOptionPane.showMessageDialog(mainFrame, "Good try! We were not fooled.");
-	    		}
+	    		}*/
 	    	}
 	    });
 	    
@@ -96,18 +95,23 @@ public class PizzaShopGUI
 	    mainFrame.setVisible(true);
 	}
 	
-	public static boolean UnprotectedQuery(String query, String[] inputs){
+	public static boolean UnprotectedQuery(String[] inputs){
         try(Connection connection = DriverManager.getConnection(URL);)
         {
+			System.out.println("Dispatching the query...");
         	try (
         			final Statement statement = connection.createStatement();
-        			final ResultSet resultSet = statement.executeQuery(String.format(query, inputs[0], inputs[1]));
+        			final ResultSet resultSet = statement.executeQuery(String.format(
+						"select name " + 
+						"from Person " + 
+						"where username = '%s' and passwd = '%s';", 
+						inputs[0], 
+						inputs[1]));
         			) 
         			
         	{
-        		System.out.println(String.format(query, inputs[0], inputs[1]));
+        		System.out.println("Query dispatched successfully.");
         		//actually run query
-        		System.out.println("Dispatching the query...");
 
         		//return the ResultSet
         		return resultSet.next();
@@ -123,28 +127,33 @@ public class PizzaShopGUI
         return false;
     }
 	
-	public static boolean ProtectedQuery(String query, String[] inputs){
+	public static boolean ProtectedQuery(String[] inputs){
 		try(Connection connection = DriverManager.getConnection(URL);)
 		{
 			try (
-					final PreparedStatement statement = connection.prepareStatement(
-							query//Query where you set a 'fill-in' value as a ? mark
-							)
-			) {
+				final PreparedStatement statement = connection.prepareStatement(
+					"select name " + 
+					"from Person " + 
+					"where username = ? and passwd = ?;"
+					//Query where you set a 'fill-in' value as a ? mark
+				)
+			) 
+			{
 				statement.setString(1,inputs[0]);//set the Username
 				statement.setString(2,inputs[1]);//set the Password
 
 				System.out.println("Dispatching the query...");
 				//actually run query
 				ResultSet result = statement.executeQuery();   
-            
+				System.out.println("Query dispatched successfully.");
+
 				// return the boolean
 				return result.next();
 			}
 		}
 		//trying to execute query
 		catch (Exception e){
-			System.out.println("Error executing query: Protected Query");
+			System.out.println(String.format("Error executing query: Protected Query\n > %s", e.getMessage()));
 		}
 
         //default return
