@@ -1,5 +1,8 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -15,20 +18,13 @@ public class PizzaShopGUI
 	private JTextField usernameInput;
 	private JTextField passwordInput;
 	private JButton submitButton;
-	
-	// Database credentials
-    final static String HOSTNAME = "egel0003-sql-server.database.windows.net";
-    final static String DBNAME = "cs-dsa-4513-sql-db";
-    final static String USERNAME = "egel0003";
-    final static String PASSWORD = "iamMola55e5!";
-    
-    // Database connection string
-    final static String URL =
-        String.format("jdbc:sqlserver://%s:1433;database=%s;user=%s;password=%s;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;",
-            HOSTNAME, DBNAME, USERNAME, PASSWORD);
-		
+
+	private String URL;    
+    // // Database connection string
+
 	public PizzaShopGUI()
 	{
+		this.URL = PizzaShopGUI.getURLFromCredentials("../../DBCredentials.txt");
 		prepareGUI();
 	}
 	
@@ -36,7 +32,34 @@ public class PizzaShopGUI
 	{
 		PizzaShopGUI pizzaShop = new PizzaShopGUI();
 	}
-	
+		
+	public static String getURLFromCredentials(String filename){
+		//catch error
+        try(BufferedReader contents = new BufferedReader(new FileReader(filename))){ //open my file
+            String Username = contents.readLine();
+            String Password = contents.readLine();
+            String Hostname = contents.readLine();
+            String DbName = contents.readLine();
+
+            String URL = String.format(
+                "jdbc:sqlserver://%s:1433;database=%s;user=%s;password=%s;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;",
+                Hostname,
+                DbName,
+                Username,
+                Password
+            );
+
+			System.out.println(String.format("HN:\n %s\nDbName:\n %s\nUname:\n %s\nPw:\n %s\nJava DB URL:\n %s", Hostname, DbName, Username, Password, URL));
+
+            return URL;
+        }
+        catch(IOException e){
+            System.out.println("Error, broh... got no cred!: " + e.getMessage());
+
+            return "Error Credentials";
+        }
+	}
+
 	private void prepareGUI()
 	{
 		mainFrame = new JFrame("SELECT * FROM PIZZA;");
@@ -44,9 +67,10 @@ public class PizzaShopGUI
 	    mainFrame.setLayout(new GridLayout(3, 1));
 	    
 	    mainFrame.addWindowListener(new WindowAdapter() {
-	         public void windowClosing(WindowEvent windowEvent){
-	            System.exit(0);
-	         }        
+			@Override
+			public void windowClosing(WindowEvent windowEvent){
+				System.exit(0);
+			}        
 	    });
 	    
 	    usernameLabel = new JLabel("Username: ", JLabel.LEFT);
@@ -95,8 +119,8 @@ public class PizzaShopGUI
 	    mainFrame.setVisible(true);
 	}
 	
-	public static boolean UnprotectedQuery(String[] inputs){
-        try(Connection connection = DriverManager.getConnection(URL);)
+	public boolean UnprotectedQuery(String[] inputs){
+        try(Connection connection = DriverManager.getConnection(this.URL);)
         {
 			System.out.println("Dispatching the query...");
         	try (
@@ -127,8 +151,8 @@ public class PizzaShopGUI
         return false;
     }
 	
-	public static boolean ProtectedQuery(String[] inputs){
-		try(Connection connection = DriverManager.getConnection(URL);)
+	public boolean ProtectedQuery(String[] inputs){
+		try(Connection connection = DriverManager.getConnection(this.URL);)
 		{
 			try (
 				final PreparedStatement statement = connection.prepareStatement(
